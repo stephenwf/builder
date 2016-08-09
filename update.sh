@@ -40,4 +40,6 @@ if command -v vagrant > /dev/null; then
     fi
 fi
 
+PYTHONPATH=src/ python -c 'from buildercore import s3; s3.create_buckets();'
+
 printf "\n   ◕ ‿‿ ◕   all done\n\n"

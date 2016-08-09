@@ -39,6 +39,12 @@ def write(key, something, overwrite=False):
     else:
         raise ValueError("boto can't handle anything much else besides strings and files")
 
+def create_buckets():
+    s3 = connect_s3()
+    for bucket_name in [config.BUILDER_BUCKET]:
+        if not s3.lookup(bucket_name):
+            s3.create_bucket(bucket_name)
+
 def delete(key):
     "deletes a single key from the builder bucket"
     # legacy prefixes
