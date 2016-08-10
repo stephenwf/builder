@@ -21,13 +21,30 @@ defaults:
     formula-dependencies:
         - https://github.com/elifesciences/builder-base-formula
     aws:
-        # find more here: http://cloud-images.ubuntu.com/releases/
-        ami: ami-aa15f6c7   # elife 'basebox.2016-05-06'
         region: us-east-1
-        vpc-id: vpc-78a2071d  # vpc-id + subnet-id are peculiar to AWS account + region
-        subnet-id: subnet-1d4eb46a # elife-public-subnet
-        subnet-cidr: '10.0.2.0/24'
-        type: t2.small  # ~ $20/mo
+
+        sns:
+            prefix: ...
+
+        sqs:
+            topics:
+                - foo
+                - bar
+
+        ec2:
+            # find more here: http://cloud-images.ubuntu.com/releases/
+            ami: ami-aa15f6c7   # elife 'basebox.2016-05-06'
+
+            vpc-id: vpc-78a2071d  # vpc-id + subnet-id are peculiar to AWS account + region
+            subnet-id: subnet-1d4eb46a # elife-public-subnet
+            subnet-cidr: '10.0.2.0/24'
+            type: t2.small  # ~ $20/mo
+
+            ext:
+                # external hdd
+                size: 10 # GB
+                device: /dev/sdh
+
         rds:
             # rds defaults only used if an `rds` section present in project
             # explicit database name overrides the one generated at template creation
@@ -47,10 +64,7 @@ defaults:
                 - subnet-8eea67d7 # elife-dbsubnet-1
                 - subnet-dbc471f0 # elife-dbsubnet-2
 
-        ext:
-            # external hdd
-            size: 10 # GB
-            device: /dev/sdh
+
     aws-alt:
         fresh:
             description: uses a plain Ubuntu basebox instead of an ami

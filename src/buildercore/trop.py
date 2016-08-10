@@ -220,6 +220,12 @@ def internal_dns(context):
     
 
 def render(context):
+
+    #
+    # heaps of ec2 assumptions here as well
+    #
+    
+    
     secgroup = ec2_security(context)
     instance = ec2instance(context)
 

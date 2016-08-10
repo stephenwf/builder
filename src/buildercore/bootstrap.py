@@ -47,8 +47,28 @@ def prep_stack():
 # provision stack
 #
 
-#@requires_stack_file
 def create_stack(stackname):
+    params = []
+    pdata = core.project_data_from_stackname(stackname)
+    if 'ec2' in pdata['aws']:
+        params.push([('KeyName', keypair.create_keypair(stackname))])
+    stack_body = core.stack_json(stackname)
+    conn = connect_aws_with_stack(stackname, 'cfn')
+    conn.create_stack(stackname, stack_body, parameters=params)
+    def is_updating(stackname):
+        return core.describe_stack(stackname).stack_status in ['CREATE_IN_PROGRESS']
+    utils.call_while(partial(is_updating, stackname), update_msg='Waiting for AWS to finish creating stack ...')
+
+    post_cfn_create = {
+        'ec2': create_ec2_stack
+    }
+    for section in pdata['aws'].keys():
+        fn = post_cfn_create.get(section)
+        if fn:
+            LOG.info("creating stack: %s" % section)
+            fn(stackname)
+
+def create_ec2_stack(stackname):
     "simply creates the stack of resources on AWS. call `bootstrap_stack` to install/update software on the stack."
     LOG.info('creating stack %r', stackname)
     stack_body = core.stack_json(stackname)
@@ -167,8 +187,19 @@ def write_environment_info(stackname, overwrite=False):
 #
 #
 
-@core.requires_active_stack
 def update_stack(stackname):
+    bits = {
+        'ec2': update_ec2_stack,
+        'sns': None,
+        'swf': ...,
+        '...': ...,
+    }
+    for bit in stack_bits:
+        fn = bits[bit]
+        fn(stackname)
+
+@core.requires_active_stack
+def update_ec2_stack(stackname):
     """installs/updates the ec2 instance attached to the specified stackname.
 
     Once AWS has finished creating an EC2 instance for us, we need to install 
@@ -176,6 +207,7 @@ def update_stack(stackname):
     script that can be downloaded from the web and then very conveniently 
     installs it's own dependencies. Once Salt is installed we give it an ID 
     (the given `stackname`), the address of the master server """
+
     pdata = core.project_data_for_stackname(stackname)
     public_ip = ec2_instance_data(stackname).ip_address
     region = pdata['aws']['region']
