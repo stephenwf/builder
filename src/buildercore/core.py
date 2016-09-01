@@ -226,6 +226,9 @@ def describe_stack(stackname):
     "returns the full details of a stack given it's name or ID"
     return first(connect_aws_with_stack(stackname, 'cfn').describe_stacks(stackname))
 
+def describe_stack_events(stackname):
+    return connect_aws_with_stack(stackname, 'cfn').describe_stack_events(stackname)
+
 # TODO: rename or something
 def stack_data(stackname):
     """like `describe_stack`, but returns a dictionary with the Cloudformation 'outputs' 
@@ -254,9 +257,10 @@ def stack_is_active(stackname):
     "returns True if the given stack is in a completed state"
     try:
         description = describe_stack(stackname)
+        events = describe_stack_events(stackname)
         result = description.stack_status in ['CREATE_COMPLETE', 'UPDATE_COMPLETE']
         if not result:
-            LOG.info("stack_status is '%s'\nDescription: %s", description.stack_status, vars(description))
+            LOG.info("stack_status is '%s'\nDescription: %s\nEvents (most recent first): %s", description.stack_status, vars(description), events)
         return result
     except BotoServerError as err:
         if err.message.endswith('does not exist'):
