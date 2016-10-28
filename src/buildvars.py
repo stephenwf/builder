@@ -54,10 +54,11 @@ def _validate():
             'build vars not found (%s). use `./bldr buildvars.fix` to attempt to fix this.',
             buildvars
         )
-        core_utils.ensure(
-            core_utils.hasallkeys(buildvars, ['stackname', 'instance_id', 'branch', 'revision', 'is_prod_instance']),
-            'build vars are not valid. use `./bldr buildvars.fix` to attempt to fix this.'
-        )
+        for key in ['stackname', 'instance_id', 'branch', 'revision', 'is_prod_instance']:
+            core_utils.ensure(
+                key in buildvars,
+                'build vars are not valid: missing key %s. use `./bldr buildvars.fix` to attempt to fix this.' % key
+            )
         return buildvars
 
     except (ValueError, AssertionError) as ex:
@@ -81,7 +82,7 @@ def fix(stackname):
             new_vars = build_vars(context, node_id)
             _update_remote_bvars(stackname, new_vars)
 
-    stack_all_ec2_nodes(stackname, (_fix_single_ec2_node, {'stackname':stackname}), username=BOOTSTRAP_USER)
+    stack_all_ec2_nodes(stackname, (_fix_single_ec2_node, {'stackname': stackname}), username=BOOTSTRAP_USER)
 
 @debugtask
 @requires_aws_stack
