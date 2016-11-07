@@ -1,3 +1,4 @@
+import inspect
 import pytz
 import os, sys, copy, json, time, random, string
 from functools import wraps
@@ -233,11 +234,26 @@ def ymd(dt=None, fmt="%Y-%m-%d"):
         dt = datetime.now() # TODO: replace this with a utcnow()
     return dt.strftime(fmt)
 
-def ensure(assertion, msg, *args):
+def ensure(
+    assertion,
+    msg,
+    # optional argument
+    # [exception_class=AssertionError,]
+    *args
+):
     """intended as a convenient replacement for `assert` statements that
     get compiled away with -O flags"""
+
+    exception_class = AssertionError
+
+    args = list(args)
+    if len(args):
+        if inspect.isclass(args[0]):
+            exception_class = args[0]
+            del args[0]
+
     if not assertion:
-        raise AssertionError(msg % args)
+        raise exception_class(msg % args)
 
 def mkdir_p(path):
     os.system("mkdir -p %s" % path)

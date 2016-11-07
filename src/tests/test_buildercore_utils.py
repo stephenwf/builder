@@ -96,3 +96,13 @@ class TestBuildercoreUtils(base.BaseCase):
             self.fail("Should not return normally")
         except:
             self.assertEqual(3, len(sleep.mock_calls))
+
+    def test_ensure(self):
+        utils.ensure(True, "True should allow ensure() to continue")
+        self.assertRaises(AssertionError, lambda: utils.ensure(False, "Error message"))
+        self.assertRaises(AssertionError, lambda: utils.ensure(False, "Error message: %s", "argument"))
+
+        class CustomException(Exception):
+            pass
+        self.assertRaises(CustomException, lambda: utils.ensure(False, "Error message", CustomException))
+        self.assertRaises(CustomException, lambda: utils.ensure(False, "Error message: %s", CustomException, "argument"))
